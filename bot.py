@@ -3,9 +3,13 @@ import requests
 import shutil
 from pydub import AudioSegment
 import speech_recognition as sr
+import openai
 
+API_KEY = "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"
 BOT_TOKEN = '5787535765:AAFldNYVtNNMJJl6sIu9PTNcxUyGwx-YAGY'
+
 bot = telebot.TeleBot(BOT_TOKEN)
+openai.api_key = API_KEY
 
 
 @bot.message_handler(commands=['start'])
@@ -42,6 +46,15 @@ def handle_voice(message):
             text = r.recognize_google(audio_text)
             print(text)
             bot.send_message(message.chat.id, f"Your VM: {text}")
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "user", "content": f"{text}"}
+                ]
+            )
+            chatgpt_response = response['choices'][0]['message']['content']
+            bot.send_message(message.chat.id, f"ChatGPT: {chatgpt_response}")
+
 
         except Exception as e:
             print('Failed to recognize speech from audio. Error:', str(e))
