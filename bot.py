@@ -4,12 +4,17 @@ import shutil
 from pydub import AudioSegment
 import speech_recognition as sr
 import openai
+import logging
+from datetime import datetime
 
-API_KEY = "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"
+API_KEY = "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"
 BOT_TOKEN = '5787535765:AAFldNYVtNNMJJl6sIu9PTNcxUyGwx-YAGY'
 
 bot = telebot.TeleBot(BOT_TOKEN)
 openai.api_key = API_KEY
+
+logging.basicConfig(level=logging.INFO)
+logging.info(f" --- Wochkyme BOT started at {datetime.now()}")
 
 
 @bot.message_handler(commands=['start'])
@@ -19,6 +24,7 @@ def start(message):
         "<b>Research Oriented Study</b> \nOur team: Adilet | Beknar | Yerulan | Timur | Adilkhan \nOur bot can convert your voice message to text and send it to you. \nAlso, we can chat with you using GPT-3.",
         parse_mode='html'
     )
+    logging.info(f" --- User '{message.from_user.username}' started the bot")
 
 
 @bot.message_handler(content_types=['voice'])
@@ -49,11 +55,9 @@ def handle_voice(message):
 
         # recoginize_() method will throw a request error if the API is unreachable, hence using exception handling
         try:
-            # using google speech recognition
-            print('Converting audio transcripts into text...')
             text = r.recognize_google(audio_text)
-            print(text)
-            bot.send_message(message.chat.id, f"Your VM: {text}")
+            logging.info(f" --- {message.from_user.username}: {text}")
+            bot.send_message(message.chat.id, f"<b>YOU:</b> {text}", parse_mode='html')
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -61,7 +65,7 @@ def handle_voice(message):
                 ]
             )
             chatgpt_response = response['choices'][0]['message']['content']
-            bot.send_message(message.chat.id, f"<b>ChatGPT:</b  > {chatgpt_response}", parse_mode='html')
+            bot.send_message(message.chat.id, f"<b>ChatGPT:</b> {chatgpt_response}", parse_mode='html')
 
 
         except Exception as e:
